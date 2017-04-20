@@ -257,6 +257,9 @@ function style2(node, color, freq, alt_url1, alt_url2) {
 	btn = document.createElement("button")
 	btn.className = "dropbtn"
 	btn.style.backgroundColor = color
+	// btn.style.width="400%"
+	// check out: https://www.w3schools.com/w3css/w3css_buttons.asp to mess around
+	// btn.style.(attribute) = "whatever"
 	btn.textContent="Colorfeed"
 	element.appendChild(btn)
 
