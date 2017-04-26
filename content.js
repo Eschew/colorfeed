@@ -263,7 +263,10 @@ function style2(node, color, freq, alt_url1, alt_url2) {
 	btn.style.backgroundColor = color
 	// check out: https://www.w3schools.com/w3css/w3css_buttons.asp to mess around
 	// btn.style.(attribute) = "whatever"
-	btn.innerHTML="<span class='glyphicon glyphicon-eye-open'></span>"
+	// Check this out --> 
+	// replace the textContent button with this line: 
+	// btn.innerHTML="<span class='glyphicon glyphicon-eye-open'></span>"
+	btn.textContent = "C"
 	//ok so basically i'm trying to work on getting an icon instead of text in the button...
 	//the method to get there is working with this 'innerHTML' thing...
 	//but the icons themselves aren't working, except for the envelope one. 
