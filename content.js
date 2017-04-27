@@ -169,35 +169,30 @@ function style2(node, color, freq, alt_url1, alt_url2) {
 // </div>
 	element = document.createElement("div")
 	element.className = "dropdown"
-	element.style.width="100%"
+	element.style="padding-top:10px;padding-bottom:0px; padding-right:10px; padding-left:10px;width:100%"
 	btn = document.createElement("container")
-	btn.className = "btn btn-block"
-	btn.style.height = "500%"
+	btn.className = "btn btn-primary btn-lg round"
+	//btn.style.height = "500%"
 	//btn.style.width = "96%"
 	//btn.style.margin="10px"
-	btn.style.backgroundColor = color
+	//btn.style.backgroundColor = color
+	btn.style.width = "100%"
 	// check out: https://www.w3schools.com/w3css/w3css_buttons.asp to mess around
 	// btn.style.(attribute) = "whatever"
-	// Check this out --> 
-	// replace the textContent button with this line: 
 	// btn.innerHTML="<span class='glyphicon glyphicon-eye-open'></span>"
-	btn.textContent = "C"
-	//ok so basically i'm trying to work on getting an icon instead of text in the button...
-	//the method to get there is working with this 'innerHTML' thing...
-	//but the icons themselves aren't working, except for the envelope one. 
-	//i'm looking online and it's apparently a common problem, i just having trouble understanding their solution
+	//btn.textContent = "C"
 	element.appendChild(btn)
-
-	// icon = document.createElement("img")
-	// icon.src = "httplink"
-	// icon.style.width="50%"
-	// icon.style.height = "50%"
-	// btn.appendChild(icon)
-
+	
+	icon = document.createElement("img")
+	icon.src = "https://raw.githubusercontent.com/Eschew/colorfeed/master/lastonepleasegod.gif"
+	icon.style.width="4%"
+	icon.style.height = "4%"
+	icon.align = "right"
+	btn.appendChild(icon)
 
 	inside = document.createElement("div")
 	inside.className="dropdown-content"
-	inside.style="padding:10px;width:100%"
+	inside.style="padding:10px;width:55%"
 	element.appendChild(inside)
 
 	// Add shit in here
