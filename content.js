@@ -272,6 +272,13 @@ function style2(node, color, freq, alt_url1, alt_url2) {
 	//but the icons themselves aren't working, except for the envelope one. 
 	//i'm looking online and it's apparently a common problem, i just having trouble understanding their solution
 	element.appendChild(btn)
+	
+	// icon = document.createElement("img")
+	// icon.src = "httplink"
+	// icon.style.width="50%"
+	// icon.style.height = "50%"
+	// btn.appendChild(icon)
+
 
 	inside = document.createElement("div")
 	inside.className="dropdown-content"
