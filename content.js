@@ -95,13 +95,14 @@ function pick_color(html) {
 	return insert_alpha(color[picked_color], -1)+"; box-shadow: 10px 0px 5px " + insert_alpha(shadow_color, likes)
 }
 
+categories = "Editor"+ "TV Network"+ "TV Show"+ "Public Figure"+ "Journalist"+ "News Personality"+
+					"Lawyer"+ "Business Person"+ "Entertainer"+ "Politician"+ "Government Official"+ "Media/News Company"+
+					"Industrials"+ "Education"+ "Political Organization"+ "Community/Government"+ "Political Party" + "News/Media Website"
+					+ "Newspaper" + "TV Network"+ "Broadcasting & Media Production Company" + "Media/News Company"
+
+
 function add_storage(element) {
-	console.log(window.glob)
-	auth = "EAACEdEose0cBABI5m2kzI5ipRBWAtfMiHlSRZAbaZBPLzGUD30T66H6BuUrWWaE3ZCTesLMQcjHjIDPXzWVqnixzwLeGnjmLZCdLaTqkuc0G3ZAeUIfphJAFKlHczg14tNXtFWOKxjcre4FiRZCxpUtUrElWevkUgN0TdTQ0HvL2C7u9IGzqVe"
-	categories = "Editor"+ "TV Network"+ "TV Show"+ "Public Figure"+ "Journalist"+ "News Personality"+
-						"Lawyer"+ "Business Person"+ "Entertainer"+ "Politician"+ "Government Official"+ "Media/News Company"+
-						"Industrials"+ "Education"+ "Political Organization"+ "Community/Government"+ "Political Party" + "News/Media Website"
-						+ "Newspaper" + "TV Network"+ "Broadcasting & Media Production Company"
+	auth = ""
 	n = element.getElementsByTagName("a")
 	for(i = 0; i < n.length; i++) {
 		link = n[i].getAttribute('href')
@@ -126,6 +127,19 @@ function add_storage(element) {
 				  if (this.readyState == 4 && this.status == 200) {
 				  	res = this.response
 					res = JSON.parse(res)
+					cat = res['category']
+					ked = categories.indexOf(cat)
+					if(ked !== -1) {
+						if(typeof res['likes'] === 'undefined') {
+							return -1
+						}
+						likes = res['likes']['data']
+						window.glob[String(res['id'])+"_valid"] = true
+						window.glob[String(res['id'])+"_likes"] = likes
+						return;
+					}
+
+
 					cat = res['category_list']
 					if(typeof res['likes'] === 'undefined') {
 						return -1
@@ -145,9 +159,10 @@ function add_storage(element) {
 					}
 					window.glob[String(res['id'])+"_valid"] = true
 					window.glob[String(res['id'])+"_likes"] = likes
+					return;
 				  }
 				};
-				xhttp.open("GET", "https://graph.facebook.com/v2.9/"+id+"?fields=category_list,about,description,likes{picture,id}&access_token="+auth, true);
+				xhttp.open("GET", "https://graph.facebook.com/v2.9/"+id+"?fields=category_list,category,about,description,likes{picture,id,category}&access_token="+auth, true);
 				xhttp.send();
 			}
 		}
@@ -175,14 +190,14 @@ function style2(node, color, freq, alt_url1, alt_url2) {
 	//btn.style.height = "500%"
 	//btn.style.width = "96%"
 	//btn.style.margin="10px"
-	//btn.style.backgroundColor = color
-	btn.style.width = "100%"
+	btn.style.backgroundColor = color
+	btn.style.width = "90%"
 	// check out: https://www.w3schools.com/w3css/w3css_buttons.asp to mess around
 	// btn.style.(attribute) = "whatever"
 	// btn.innerHTML="<span class='glyphicon glyphicon-eye-open'></span>"
 	//btn.textContent = "C"
 	element.appendChild(btn)
-	
+
 	icon = document.createElement("img")
 	icon.src = "https://raw.githubusercontent.com/Eschew/colorfeed/master/lastonepleasegod.gif"
 	icon.style.width="4%"
@@ -199,10 +214,26 @@ function style2(node, color, freq, alt_url1, alt_url2) {
 
 	header = document.createElement("h1")
 	str = String(freq)
+	console.log(freq)
 	percent = str.substring(2, 4)+"."+str.substring(4,6)
 	header.textContent = "This source appears in your News Feed "+ percent+"% of the time."
 	inside.append(header)
 	inside.append(document.createElement("br"))
+
+	bar_div = document.createElement("div")
+	bar_div.className = "progress"
+	bar = document.createElement("div")
+	bar.className = "progress-bar-info"
+	bar.style.height = "15px"
+	bar.setAttribute("role", "progressbar")
+	bar.setAttribute("aria-valuenow", freq)
+	bar.setAttribute("aria-valuemin", "0")
+	bar.setAttribute("aria-valuemax", "1")
+	bar.style.width=percent+"%"
+	bar_div.append(bar)
+	inside.append(bar_div)
+	inside.append(document.createElement("br"))
+
 
 	header = document.createElement("h1")
 	header.textContent = "Check out some more related sources:"
@@ -244,9 +275,6 @@ function style2(node, color, freq, alt_url1, alt_url2) {
 	link2.target="_blank"
 	inner_im1.style="width:50%"
 	inner_im2.style="width:50%"
-
-	console.log(node)
-	console.log("TEST")
 	node.prepend(element)
 }
 
@@ -255,10 +283,30 @@ function sim_link(id) {
 	if(typeof data === 'undefined') {
 		return -1
 	}
-	first = Math.floor(Math.random()*data.length)
-	second = Math.floor(Math.random()*data.length)
-	while (first == second) {
+	attempts = 0
+	while (true) {
+		first = Math.floor(Math.random()*data.length)
+		attempts = attempts + 1
+		if (attempts > 50) {
+			return -1
+		}
+		if(categories.indexOf(data[first]['category']) !== -1) {
+			continue
+		}
+		else {
+			break;
+		}
+	}
+	attempts = 0
+	while (true) {
 		second = Math.floor(Math.random()*data.length)
+		attempts = attempts + 1
+		if(categories.indexOf(data[second]['category']) !== -1 && second !== first) {
+			break
+		}
+		if (attempts > 60) {
+			return -1
+		}
 	}
 
 	if("picture" in data[first]) {
@@ -281,15 +329,15 @@ function sim_link(id) {
 }
 
 function get_ranking(id, thresh) {
+	console.log(window.glob)
 	count2 = window.glob['count']
 	freq = {}
 	for(var key in window.glob) {
 		if(key.indexOf('_') !== -1) {
 			continue;
 		}
-		freq[id] = window.glob[id]/count2
+		freq[key] = window.glob[key]/count2
 	}
-
 
 	// Create items array
 	var items = Object.keys(freq).map(function(key) {
@@ -314,8 +362,8 @@ function get_ranking(id, thresh) {
 }
 
 function pick_color3(high) {
-
-	high_freq = ["#0FFCE0",
+	console.log(high)
+	low_freq = ["#0FFCE0",
 				"#FFA00D",
 				"#FEFF1F",
 				"#7E42FF",
@@ -331,22 +379,22 @@ function pick_color3(high) {
 				"#01C91B",
 				"#FFCE00",
 				"#02FE52",]
-	low_freq = ['#AD9AA5',
-				'#BEA0CC',
-				'#BAB592',
-				'#A2BFA0',
-				'#B8CF90',
-				'#D1F7FA',
-				'#BFA0B2',
-				'#54B7BF',
-				'#99BCAF',
-				'#BCD0EF',
-				'#ABB8D7',
-				'#839BBF',
-				'#83BFA2',
-				'#B29783',
-				'#A9D6B3',
-				'#B0AAC2',]
+	high_freq = ['#877f83',
+				'#897a91',
+				'#a39e80',
+				'#7f967e',
+				'#7f8c69',
+				'#a8b6b7',
+				'#8c7e86',
+				'#22595e',
+				'#779187',
+				'#c7d1e0',
+				'#bec6d8',
+				'#abbcd6',
+				'#687c73',
+				'#6d6259',
+				'#667f6b',
+				'#8e8a9b',]
 	if (high == 1) {
 		n = Math.floor(Math.random()*high_freq.length)
 		return high_freq[n]
@@ -378,8 +426,8 @@ function update() {
 		if(links == -1) {
 			continue
 		}
-		rank = get_ranking(t, 4)
-		color = pick_color3(t)
+		rank = get_ranking(t, 3)
+		color = pick_color3(rank[0])
 		style2(run[count], color, rank[1], links[0], links[1])
 	}
 	return

@@ -22,7 +22,7 @@
       "matches": [
         "https://www.facebook.com/*"
       ],
-      "css": ["css/bootstrap.css", "css/dropdown.css"],
+      "css": ["css/bootstrap-theme.css", "css/dropdown.css"],
       "js": ["js/bootstrap.js", "content.js", "jquery.js"]
     }
   ], 
