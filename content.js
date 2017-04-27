@@ -1,4 +1,5 @@
 MutationObserver = window.WebKitMutationObserver
+glob = {"count":1}
 observer = new MutationObserver(function(mutations, observer) {update()});
 
 observer.observe(document.getElementsByClassName("_1qkq _1qkx")[0], {
@@ -8,8 +9,6 @@ observer.observe(document.getElementsByClassName("_1qkq _1qkx")[0], {
         }); 
 
 update()
-
-chrome.storage.sync.clear()
 
 function insert_alpha(string, likes) {
 	alpha = 0.45
@@ -32,45 +31,6 @@ function insert_alpha(string, likes) {
 	ind = string.indexOf("alpha")
 	string = string.substring(0, ind) + alpha +")"
 	return string	
-}
-
-
-function process_likes(str) {
-	end_ind = str.indexOf("</span>")
-	if (end_ind == -1) {
-		return -1;
-	}
-
-	start_ind = str.indexOf(">", 7)
-	unparsed = str.substring(start_ind+1, end_ind)
-	curr = 0
-	nancount = 0
-	seen_dec = 0
-	for(i = 0; i < unparsed.length; i++) {
-		if (curr != 0 && unparsed[i] == '.') {
-			seen_dec = 1
-		}
-		n = Number(unparsed[i])
-		if(curr != 0 && unparsed[i].toLowerCase()=='k') {
-			if (seen_dec == 0) {
-				curr = curr*10
-			}
-			curr = curr*100
-		}
-
-		if(nancount > 30) {
-			return 0
-		}
-
-		if(isNaN(n)) {
-			nancount = nancount+1
-			continue
-		}
-		curr = curr*10
-		curr += n
-		nancount = 0
-	}
-	return curr
 }
 
 function pick_color(html) {
@@ -136,11 +96,12 @@ function pick_color(html) {
 }
 
 function add_storage(element) {
-
-	auth = ""
+	console.log(window.glob)
+	auth = "EAACEdEose0cBABI5m2kzI5ipRBWAtfMiHlSRZAbaZBPLzGUD30T66H6BuUrWWaE3ZCTesLMQcjHjIDPXzWVqnixzwLeGnjmLZCdLaTqkuc0G3ZAeUIfphJAFKlHczg14tNXtFWOKxjcre4FiRZCxpUtUrElWevkUgN0TdTQ0HvL2C7u9IGzqVe"
 	categories = "Editor"+ "TV Network"+ "TV Show"+ "Public Figure"+ "Journalist"+ "News Personality"+
 						"Lawyer"+ "Business Person"+ "Entertainer"+ "Politician"+ "Government Official"+ "Media/News Company"+
 						"Industrials"+ "Education"+ "Political Organization"+ "Community/Government"+ "Political Party" + "News/Media Website"
+						+ "Newspaper" + "TV Network"+ "Broadcasting & Media Production Company"
 	n = element.getElementsByTagName("a")
 	for(i = 0; i < n.length; i++) {
 		link = n[i].getAttribute('href')
@@ -150,96 +111,50 @@ function add_storage(element) {
 			// page_id: Flag whether we've seen it before
 			// page_id_valid: Whether it's a page we want to track
 			// page_id_count: How many times encountered before
-			chrome.storage.sync.get([String(id), String(id)+"_valid", String(id)+"_count"], function (results) {
-    			console.log("first")
-    			console.log(results)
-    			if(String(id) in results) {
-    				// Seen before
-    				if(results[String(id)+"_valid"]) {
-    					// we care about it
-    					curr = results[String(id)+"_count"]
-						curr += 1
-						results[String(id) + "_count"] = curr
-						chrome.storage.sync.set(results)
-    				}
-    				return
-    			}
-    			else {
-    				// Haven't seen before
-    				// Never seen page before
-					xhttp = new XMLHttpRequest();
-					xhttp.onreadystatechange = function() {
-					  if (this.readyState == 4 && this.status == 200) {
-					  	res = this.response
-						js = JSON.parse(res)
-						cat = js['category']
-						ked = categories.indexOf(cat)
-						json = {}
+			if (String(id) in window.glob) {
+				// May be valid
+				if (window.glob[String(id)+"_valid"]) {
+					window.glob[String(id)] = window.glob[String(id)]+1
+					window.glob["count"] = window.glob["count"] + 1
+				}
+			}
+			else {
+				window.glob[String(id)] = 0
+
+				xhttp = new XMLHttpRequest();
+				xhttp.onreadystatechange = function() {
+				  if (this.readyState == 4 && this.status == 200) {
+				  	res = this.response
+					res = JSON.parse(res)
+					cat = res['category_list']
+					if(typeof res['likes'] === 'undefined') {
+						return -1
+					}
+					likes = res['likes']['data']
+					if(typeof cat === 'undefined') {
+						return -1
+					}
+					for(j = 0; j < cat.length; j++) {
+						ked = categories.indexOf(cat[j]["name"])
+
 						if(ked == -1) {
 							// not interested, skip and mark
-							json[String(id)+"_valid"] = false
-							json[String(id)] = true
-							chrome.storage.sync.set(json)
-							return
+							window.glob[String(res['id'])+"_valid"] = false
+							return -1
 						}
-						else{
-							json[String(id)] = true
-							json[String(id)+"_valid"] = true
-							json[String(id)+"_count"] = 1
-							chrome.storage.sync.set(json)
-						}
-					  }
-					};
-					xhttp.open("GET", "https://graph.facebook.com/"+id+"?fields=category,about,description&access_token="+auth, true);
-					xhttp.send();
-    			}
-			})
+					}
+					window.glob[String(res['id'])+"_valid"] = true
+					window.glob[String(res['id'])+"_likes"] = likes
+				  }
+				};
+				xhttp.open("GET", "https://graph.facebook.com/v2.9/"+id+"?fields=category_list,about,description,likes{picture,id}&access_token="+auth, true);
+				xhttp.send();
+			}
 		}
 	}
-	chrome.storage.sync.get(null, function(res) {
-		console.log(res)
-	})
+	return String(id)
 }
 
-function pick_color2(node){
-	low_freq = ["#0FFCE0",
-				"#FFA00D",
-				"#FEFF1F",
-				"#7E42FF",
-				"#E8E80A",
-				"#FF5300",
-				"#CC14B7",
-				"#FFDD4C",
-				"#4CF8A8",
-				"#D148FA",
-				"#F45398",
-				"#FA237F",
-				"#A0FC33",
-				"#01C91B",
-				"#FFCE00",
-				"#02FE52",]
-	high_freq = ['#AD9AA5',
-				'#BEA0CC',
-				'#BAB592',
-				'#A2BFA0',
-				'#B8CF90',
-				'#D1F7FA',
-				'#BFA0B2',
-				'#54B7BF',
-				'#99BCAF',
-				'#BCD0EF',
-				'#ABB8D7',
-				'#839BBF',
-				'#83BFA2',
-				'#B29783',
-				'#A9D6B3',
-				'#B0AAC2',]
-
-
-
-
-
-}
 
 function style2(node, color, freq, alt_url1, alt_url2) {
 	//alt_url is a list [icon_url, fb_url]
@@ -272,7 +187,7 @@ function style2(node, color, freq, alt_url1, alt_url2) {
 	//but the icons themselves aren't working, except for the envelope one. 
 	//i'm looking online and it's apparently a common problem, i just having trouble understanding their solution
 	element.appendChild(btn)
-	
+
 	// icon = document.createElement("img")
 	// icon.src = "httplink"
 	// icon.style.width="50%"
@@ -335,8 +250,115 @@ function style2(node, color, freq, alt_url1, alt_url2) {
 	inner_im1.style="width:50%"
 	inner_im2.style="width:50%"
 
-
+	console.log(node)
+	console.log("TEST")
 	node.prepend(element)
+}
+
+function sim_link(id) {
+	data = glob[id + "_likes"]
+	if(typeof data === 'undefined') {
+		return -1
+	}
+	first = Math.floor(Math.random()*data.length)
+	second = Math.floor(Math.random()*data.length)
+	while (first == second) {
+		second = Math.floor(Math.random()*data.length)
+	}
+
+	if("picture" in data[first]) {
+		d1 = data[first]['picture']['data']['url']
+	}
+	else {
+		d1 = data[first]['data']['data']['url']
+	}
+	id1 = data[first]["id"]
+	id2 = data[second]["id"]
+
+	if("picture" in data[second]) {
+		d2 = data[second]['picture']['data']['url']
+	}
+	else {
+		d2 = data[second]['data']['data']['url']
+	}
+	return [[d1 , "https://www.facebook.com/"+id1],
+			[d2, "https://www.facebook.com/"+id2]]
+}
+
+function get_ranking(id, thresh) {
+	count2 = window.glob['count']
+	freq = {}
+	for(var key in window.glob) {
+		if(key.indexOf('_') !== -1) {
+			continue;
+		}
+		freq[id] = window.glob[id]/count2
+	}
+
+
+	// Create items array
+	var items = Object.keys(freq).map(function(key) {
+	    return [key, freq[key]];
+	});
+
+	// Sort the array based on the second element
+	items.sort(function(first, second) {
+	    return second[1] - first[1];
+	});
+
+	// Create a new array with only the top thresh items
+	sorted = items.slice(0, thresh)
+	for (i = 0; i < sorted.length; i ++) {
+		if(id == sorted[i][0]) {
+			// Return high freq
+			return [1, freq[id]]
+		}
+	}
+	// Return low freq
+	return [0, freq[id]]
+}
+
+function pick_color3(high) {
+
+	high_freq = ["#0FFCE0",
+				"#FFA00D",
+				"#FEFF1F",
+				"#7E42FF",
+				"#E8E80A",
+				"#FF5300",
+				"#CC14B7",
+				"#FFDD4C",
+				"#4CF8A8",
+				"#D148FA",
+				"#F45398",
+				"#FA237F",
+				"#A0FC33",
+				"#01C91B",
+				"#FFCE00",
+				"#02FE52",]
+	low_freq = ['#AD9AA5',
+				'#BEA0CC',
+				'#BAB592',
+				'#A2BFA0',
+				'#B8CF90',
+				'#D1F7FA',
+				'#BFA0B2',
+				'#54B7BF',
+				'#99BCAF',
+				'#BCD0EF',
+				'#ABB8D7',
+				'#839BBF',
+				'#83BFA2',
+				'#B29783',
+				'#A9D6B3',
+				'#B0AAC2',]
+	if (high == 1) {
+		n = Math.floor(Math.random()*high_freq.length)
+		return high_freq[n]
+
+	}
+	n = Math.floor(Math.random()*low_freq.length)
+	return low_freq[n]
 }
 
 function update() {
@@ -349,19 +371,21 @@ function update() {
 		else{
 			continue
 		}
-		t = ["https://scontent.fsnc1-5.fna.fbcdn.net/v/t1.0-1/c64.14.172.172/p200x200/1236510_161973027337310_1766669790_n.jpg?oh=035bfcc61de52d4526a4459fe326aa9e&oe=59824E9D",
-			"https://www.facebook.com/sherifinkbooks/"]
-		s = ["https://scontent.fsnc1-5.fna.fbcdn.net/v/t1.0-1/p200x200/14117747_632351770280035_6486249289685619428_n.png?oh=049c61d2e14382654a1acff4b65b31d1&oe=5983DCF6",
-			"https://www.facebook.com/shareblue/"]
-		style2(run[count], "#AD9AA5", .0139, t, s)
-		// t = add_storage(run[count])
-		// s = pick_color(run[count])
-		// if (s == -1) {
-		// 	// No color
-		// 	continue
-		// }
-		// run[count].setAttribute("style",
-		// 	"border-right:20px solid " + s)
+		t = add_storage(run[count])
+		if(t == -1) {
+			// skip
+			continue
+		}
+		if(window.glob['count'] < 10) {
+			continue
+		}
+		links = sim_link(t)
+		if(links == -1) {
+			continue
+		}
+		rank = get_ranking(t, 4)
+		color = pick_color3(t)
+		style2(run[count], color, rank[1], links[0], links[1])
 	}
 	return
 }
