@@ -102,7 +102,7 @@ categories = "Editor"+ "TV Network"+ "TV Show"+ "Public Figure"+ "Journalist"+ "
 
 
 function add_storage(element) {
-	auth = ""
+	auth = "EAACEdEose0cBAPjZAVN7p34OvDtQLgavCtd3JZCo1V4YXzoizxMc6GJE6klhjlTVbx9SE3sIkrl4BJZAOQy4zZC2OHysvyLGe99UqDxSDFIN2PGKA9vaJfBvUZAybgI1stXmA3dTWMBtbE4b7l72nFEpRr5CYibIeoWbNQensEUKzPx1UlOY913dz0v3DjXoZD"
 	n = element.getElementsByTagName("a")
 	for(i = 0; i < n.length; i++) {
 		link = n[i].getAttribute('href')
@@ -363,38 +363,18 @@ function get_ranking(id, thresh) {
 
 function pick_color3(high) {
 	console.log(high)
-	low_freq = ["#0FFCE0",
-				"#FFA00D",
-				"#FEFF1F",
-				"#7E42FF",
-				"#E8E80A",
-				"#FF5300",
-				"#CC14B7",
-				"#FFDD4C",
-				"#4CF8A8",
-				"#D148FA",
-				"#F45398",
-				"#FA237F",
-				"#A0FC33",
-				"#01C91B",
-				"#FFCE00",
-				"#02FE52",]
-	high_freq = ['#877f83',
-				'#897a91',
-				'#a39e80',
-				'#7f967e',
-				'#7f8c69',
-				'#a8b6b7',
-				'#8c7e86',
-				'#22595e',
-				'#779187',
-				'#c7d1e0',
-				'#bec6d8',
-				'#abbcd6',
-				'#687c73',
-				'#6d6259',
-				'#667f6b',
-				'#8e8a9b',]
+	low_freq = ["#FFD44C",
+				"#BF4079",
+				"#F47D4A",
+				"#F25570",
+				"#FFB24C",
+				]
+	high_freq = ['#E2D0AA',
+				'#E5E4C3',
+				'#D1E5DD',
+				'#BAB8CC',
+				'#A5B2B5',
+				,]
 	if (high == 1) {
 		n = Math.floor(Math.random()*high_freq.length)
 		return high_freq[n]
@@ -419,7 +399,7 @@ function update() {
 			// skip
 			continue
 		}
-		if(window.glob['count'] < 10) {
+		if(window.glob['count'] < 2) {
 			continue
 		}
 		links = sim_link(t)
